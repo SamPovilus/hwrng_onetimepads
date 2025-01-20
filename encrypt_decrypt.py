@@ -16,14 +16,14 @@ def validate_printable(input_string):
 def add_strings(message, otp):
     """Encrypt the message by adding the one-time pad, modulo printable characters range."""
     return ''.join(
-        chr(((ord(m) - START_PRINTABLE + ord(o) - START_PRINTABLE) % PRINTABLE_LENGTH) + START_PRINTABLE)
+        chr(((ord(m) - START_PRINTABLE + 1 + ord(o) - START_PRINTABLE  ) % PRINTABLE_LENGTH) + START_PRINTABLE)
         for m, o in zip(message, otp)
     )
 
 def subtract_strings(message, otp):
     """Decrypt the message by subtracting the one-time pad, modulo printable characters range."""
     return ''.join(
-        chr(((ord(m) - START_PRINTABLE - (ord(o) - START_PRINTABLE)) % PRINTABLE_LENGTH) + START_PRINTABLE)
+        chr(((ord(m) - START_PRINTABLE - (ord(o) - START_PRINTABLE) -1 ) % PRINTABLE_LENGTH) + START_PRINTABLE)
         for m, o in zip(message, otp)
     )
 
