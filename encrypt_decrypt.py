@@ -13,6 +13,7 @@ def validate_printable(input_string):
         if not (START_PRINTABLE <= ord(char) <= END_PRINTABLE):
             raise ValueError(f"Non-printable character found: {repr(char)}")
 
+#@TODO SAM, YOUR DOCUMENATION HAS " " AT POSITION 0 BUT THIS DOCUMENTATION ASSUMES IT'S AT 1 FIX YOUR INDEXING
 def add_strings(message, otp):
     """Encrypt the message by adding the one-time pad, modulo printable characters range."""
     return ''.join(
