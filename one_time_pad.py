@@ -3,6 +3,7 @@
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 import os
+import argparse
 
 # pi hwrng http://scruss.com/blog/2013/06/07/well-that-was-unexpected-the-raspberry-pis-hardware-random-number-generator/
 
@@ -44,12 +45,13 @@ def create_pdf(output_path="output.pdf", text=""):
 
     # Print ASCII printable characters as a key at the top
     printable_key = "".join(chr(i) for i in range(32, 127))
-    key_lines = [printable_key[i:i + MAX_CHARS_PER_LINE] for i in range(0, len(printable_key), MAX_CHARS_PER_LINE)]
+    key_lines = [''.join(f"{n//10 if n % 10 == 0 else n % 10}" for n in range(1, 96))]
+    key_lines += [printable_key[i:i + MAX_CHARS_PER_LINE] for i in range(0, len(printable_key), MAX_CHARS_PER_LINE)]
     for key_line in key_lines:
         if y < MARGIN:
             break
         c.drawString(x, y, key_line)
-        y -= LINE_SPACING
+        y -= (LINE_SPACING/LINE_SPACING) * FONT_SIZE
 
     # Split text into lines of equal length
     lines = [text[i:i + MAX_CHARS_PER_LINE] for i in range(0, len(text), MAX_CHARS_PER_LINE)]
@@ -70,9 +72,13 @@ def create_pdf(output_path="output.pdf", text=""):
 
 # Main logic
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Create a pdf of a one time pad")
+    parser.add_argument("-o", "--outfile", type=str, required=True, help="Output file name")
+    args = parser.parse_args()
+
     random_text = generate_random_text()
     if random_text:
-        create_pdf(output_path="random_output.pdf", text=random_text)
-        print("PDF created: random_output.pdf")
+        create_pdf(output_path=args.outfile, text=random_text)
+        print("PDF created: " + args.outfile)
     else:
         print("No data to write to PDF.")
