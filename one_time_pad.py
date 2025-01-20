@@ -46,31 +46,38 @@ def create_pdf(output_path="output.pdf", text=""):
     x = MARGIN
     y = PAGE_HEIGHT - MARGIN  # Start from top margin
 
+    documentation_lines = ["There is a space at the beginning of the printable caracters"]
+    documentation_lines += ["encryption is (message+otp)%95, decrpytion is (message-otp)%95"]
+    for documentation_line in documentation_lines:
+        if y < MARGIN:
+            break
+        c.drawString(x + ((FONT_SIZE * 0.6)*4), y, documentation_line)  # Start key at the data column
+        y -= (LINE_SPACING/LINE_SPACING)* FONT_SIZE
+
     # Print column numbers every 5 columns, aligned with data
     column_numbers = "".join(f"{i:<5}" for i in range(0, MAX_CHARS_PER_LINE, 5))
-    c.drawString(x + (FONT_SIZE * 0.6), y, column_numbers)  # Shifted to align with data
-    y -= LINE_SPACING
+    c.drawString(x + ((FONT_SIZE * 0.6) *4), y, column_numbers)  # Shifted to align with data
+    y -= (LINE_SPACING/LINE_SPACING)* FONT_SIZE
+
 
     # Print ASCII printable characters as a key starting at the same column as data
     printable_key = "".join(chr(i) for i in range(32, 127))
-    key_lines = ["There is a space at the beginning of the printable caracters"]
-    key_lines += ["encryption is (message+otp)%95, decrpytion is (message-otp)%95"]
-    key_lines += [printable_key[i:i + MAX_CHARS_PER_LINE] for i in range(0, len(printable_key), MAX_CHARS_PER_LINE)]
+    key_lines = [printable_key[i:i + MAX_CHARS_PER_LINE] for i in range(0, len(printable_key), MAX_CHARS_PER_LINE)]
     for key_line in key_lines:
         if y < MARGIN:
             break
         c.drawString(x + ((FONT_SIZE * 0.6)*4), y, key_line)  # Start key at the data column
-        y -= LINE_SPACING
+        y -= (LINE_SPACING/LINE_SPACING)* FONT_SIZE
 
     # Draw vertical lines every 5 characters, alternating between solid and dashed
     c.setLineWidth(0.5)
     for i in range(5, MAX_CHARS_PER_LINE + 1, 5):
         x_pos = MARGIN + (i - 1) * (FONT_SIZE * 0.6)  # Adjust to align correctly with character positions
         if (i // 5) % 2 == 0:
-            c.line(x_pos, PAGE_HEIGHT - MARGIN, x_pos, MARGIN)
+            c.line(x_pos, PAGE_HEIGHT - MARGIN - (FONT_SIZE*1), x_pos, MARGIN)
         else:
             c.setDash(3, 2)
-            c.line(x_pos, PAGE_HEIGHT - MARGIN, x_pos, MARGIN)
+            c.line(x_pos, PAGE_HEIGHT - MARGIN - (FONT_SIZE*1), x_pos, MARGIN)
             c.setDash()  # Reset to solid
 
     # Split text into lines of equal length (multiple of 5 characters)
