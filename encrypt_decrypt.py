@@ -2,49 +2,63 @@
 
 import argparse
 
-# Define the range of printable characters (ASCII 32 to 126)
-START_PRINTABLE = 32
-END_PRINTABLE = 126
-PRINTABLE_LENGTH = END_PRINTABLE - START_PRINTABLE + 1
+# Predefined character sets
+BASE64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 
-def validate_printable(input_string):
-    """Ensure all characters in the input are printable ASCII characters."""
+# Default character set (modify this if needed)
+CUSTOM_SUPPORTED_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?@#$%^&*()-_=+[]{}|;:'\"<>/\\`~"
+
+def get_supported_chars(charset, extra_chars):
+    """Returns the character set based on user selection."""
+    if charset == "base64":
+        return BASE64_CHARS
+    elif charset == "base64-extra":
+        return BASE64_CHARS + extra_chars
+    else:  # Default to custom
+        return CUSTOM_SUPPORTED_CHARS
+
+def prepare_char_mapping(supported_chars):
+    """Prepares character index mappings for encryption/decryption."""
+    return {c: i for i, c in enumerate(supported_chars)}
+
+def validate_printable(input_string, supported_chars):
+    """Ensures all characters in the input are within the supported character set."""
     for char in input_string:
-        if not (START_PRINTABLE <= ord(char) <= END_PRINTABLE):
-            raise ValueError(f"Non-printable character found: {repr(char)}")
+        if char not in supported_chars:
+            raise ValueError(f"Unsupported character found: {repr(char)}")
 
-#@TODO SAM, YOUR DOCUMENATION HAS " " AT POSITION 0 BUT THIS DOCUMENTATION ASSUMES IT'S AT 1 FIX YOUR INDEXING
-def add_strings(message, otp):
-    """Encrypt the message by adding the one-time pad, modulo printable characters range."""
+def add_strings(message, otp, supported_chars, char_index):
+    """Encrypts the message by adding the one-time pad using modular arithmetic."""
+    char_count = len(supported_chars)
     return ''.join(
-        chr(((ord(m) - START_PRINTABLE + 1 + ord(o) - START_PRINTABLE  ) % PRINTABLE_LENGTH) + START_PRINTABLE)
+        supported_chars[(char_index[m] + char_index[o]) % char_count]
         for m, o in zip(message, otp)
     )
 
-def subtract_strings(message, otp):
-    """Decrypt the message by subtracting the one-time pad, modulo printable characters range."""
+def subtract_strings(message, otp, supported_chars, char_index):
+    """Decrypts the message by subtracting the one-time pad using modular arithmetic."""
+    char_count = len(supported_chars)
     return ''.join(
-        chr(((ord(m) - START_PRINTABLE - (ord(o) - START_PRINTABLE) -1 ) % PRINTABLE_LENGTH) + START_PRINTABLE)
+        supported_chars[(char_index[m] - char_index[o]) % char_count]
         for m, o in zip(message, otp)
     )
 
-def one_time_pad(input_message, otp, mode="encrypt"):
-    # Ensure OTP is not shorter than the message
+def one_time_pad(input_message, otp, mode, supported_chars):
+    """Performs encryption or decryption using the one-time pad algorithm."""
     if len(otp) < len(input_message):
         raise ValueError("Error: OTP must be at least as long as the message.")
 
-    # Validate input message and OTP (ensure they contain only printable characters)
-    validate_printable(input_message)
-    validate_printable(otp)
+    # Validate input message and OTP
+    validate_printable(input_message, supported_chars)
+    validate_printable(otp, supported_chars)
+
+    # Prepare character index mapping
+    char_index = prepare_char_mapping(supported_chars)
 
     if mode == "encrypt":
-        # Addition for encryption
-        encrypted_message = add_strings(input_message, otp)
-        return encrypted_message
+        return add_strings(input_message, otp, supported_chars, char_index)
     elif mode == "decrypt":
-        # Subtraction for decryption
-        decrypted_message = subtract_strings(input_message, otp)
-        return decrypted_message
+        return subtract_strings(input_message, otp, supported_chars, char_index)
     else:
         raise ValueError("Invalid mode. Use 'encrypt' or 'decrypt'.")
 
@@ -52,16 +66,21 @@ def main():
     # Set up argument parsing
     parser = argparse.ArgumentParser(description="Encrypt or decrypt a message using a one-time pad.")
     
-    # Short options added here
-    parser.add_argument("-m", "--message", type=str, required=True, help="The plaintext or ciphertext message (ASCII only).")
-    parser.add_argument("-o", "--otp", type=str, required=True, help="The one-time pad string (must be same length as or longer than the message).")
+    parser.add_argument("-m", "--message", type=str, required=True, help="The plaintext or ciphertext message.")
+    parser.add_argument("-o", "--otp", type=str, required=True, help="The one-time pad string (must be at least as long as the message).")
     parser.add_argument("-t", "--mode", choices=["encrypt", "decrypt"], required=True, help="Specify whether to encrypt or decrypt the message.")
-    
+    parser.add_argument("-s", "--charset", choices=["custom", "base64", "base64-extra"], default="custom",
+                        help="Choose the character set: 'custom' (default), 'base64', or 'base64-extra'.")
+    parser.add_argument("-e", "--extra-chars", type=str, default="", help="Extra characters for 'base64-extra' mode.")
+
     # Parse command-line arguments
     args = parser.parse_args()
 
+    # Get the character set
+    supported_chars = get_supported_chars(args.charset, args.extra_chars)
+
     try:
-        result = one_time_pad(args.message, args.otp, args.mode)
+        result = one_time_pad(args.message, args.otp, args.mode, supported_chars)
         print(f"Result: {result}")
     except ValueError as e:
         print(e)
