@@ -97,7 +97,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate a PDF filled with random text from /dev/hwrng.")
     parser.add_argument("-o", "--output", required=True, help="Path to the output PDF file.")
     parser.add_argument("-c", "--charset", choices=["base64", "base64+sup"], default="base64", help="Character set to use (default: base64). Use 'base64+sup' for additional symbols.")
-    parser.add_argument("-s", "--font-size", type=int, default=8, help="Font size for the output PDF (default: 11).")
+    parser.add_argument("-s", "--font-size", type=int, default=8, help="Font size for the output PDF (default: 8).")
     parser.add_argument("-a", "--additional-chars", type=str, default="", help="Additional characters to include in the character set.")
     args = parser.parse_args()
 
