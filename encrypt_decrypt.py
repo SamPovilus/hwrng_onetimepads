@@ -31,7 +31,7 @@ def add_strings(message, otp, supported_chars, char_index):
     """Encrypts the message by adding the one-time pad using modular arithmetic."""
     char_count = len(supported_chars)
     return ''.join(
-        supported_chars[(char_index[m] + char_index[o]) % char_count]
+        supported_chars[(char_index[m] + char_index[o]) % char_count ]
         for m, o in zip(message, otp)
     )
 
@@ -78,6 +78,8 @@ def main():
 
     # Get the character set
     supported_chars = get_supported_chars(args.charset, args.extra_chars)
+
+    print(f"supported characters are :::{supported_chars}:::")
 
     try:
         result = one_time_pad(args.message, args.otp, args.mode, supported_chars)
